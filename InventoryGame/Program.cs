@@ -6,105 +6,147 @@ class Program
     static void Main()
     {
         Game game = new Game();
-        game.Start();
-
+        game.Run();
+        
     }
 }
 
 class Game
 {
-    private Player player;
-    private List<Zombie> zombies;
-    private int day = 1;
+    private Player player = new Player();
 
-    public Game()
+    public void Run()
     {
-        player = new Player();
-        zombies = new List<Zombie>();
-    }
-    
-
-    public void Start()
-    {
-        Console.WriteLine("Welcome to the Zombie Survival Game!");
-        Console.WriteLine("Press TAB to open inventory");
-        Console.WriteLine("10 to start the day.");
-        Console.WriteLine("equip something from inventory with 1-5");
-        Console.WriteLine("For more information about an object press 8");
+        
+        Console.WriteLine("Welcome to the game!");
+        Console.WriteLine("Press TAB to open inventory.");
+        Console.WriteLine("Press 1-5 to equip an item.");
+        Console.WriteLine("Press 8 for more info.");
+        Console.WriteLine("Press 9 to swap items.");
+        Console.WriteLine("Press 0 to start the day.");
 
         while (true)
         {
-            string input = Console.ReadLine();   
-            ConsoleKeyInfo key = Console.ReadKey(true); // Read key without displaying it
+            ConsoleKeyInfo key = Console.ReadKey(true);
+
             if (key.Key == ConsoleKey.Tab)
             {
                 player.ShowInventory();
             }
-            else if (input == "10")
+            else if (key.Key >= ConsoleKey.D1 && key.Key <= ConsoleKey.D5)
             {
-                StartDay();
+                player.EquipItem(key.Key - ConsoleKey.D1);
             }
-            else if (input == "8")
+            else if (key.Key == ConsoleKey.D8)
             {
                 Display();
             }
+            else if (key.Key == ConsoleKey.D9)
+            {
+                SwapItems();
+            }
+            else if (key.Key == ConsoleKey.D0)
+            {
+                StartDay();
+            }
         }
-        
+    }
+
+    private void Display()
+    {
+        Console.WriteLine("Enter the name of the item for more information:");
+        string itemName = Console.ReadLine();
+
+        Weapon item = player.GetInventoryItemByName(itemName);
+        if (item != null)
+        {
+            Console.WriteLine($"Item: {item.Name}, Range: {item.Range}m");
+        }
+        else
+        {
+            Console.WriteLine("Item not found.");
+        }
+    }
+
+    private void SwapItems()
+    {
+        Console.WriteLine("Enter the two item slots to swap (e.g., '1 2'): ");
+        string[] input = Console.ReadLine().Split();
+
+        if (input.Length == 2 && int.TryParse(input[0], out int slot1) && int.TryParse(input[1], out int slot2))
+        {
+            player.SwapInventoryItems(slot1 - 1, slot2 - 1);
+        }
+        else
+        {
+            Console.WriteLine("Invalid input!");
+        }
     }
 
     private void StartDay()
     {
-        Console.WriteLine($"\nDay {day} begins!");
-        zombies.Clear();
-        zombies.Add(new Zombie(30));
-        zombies.Add(new Zombie(50));
-
-        foreach (var zombie in zombies)
-        {
-            Console.WriteLine($"A zombie is {zombie.Distance} meters away.");
-        }
-    }
-    public void Display()
-    {
-        Console.WriteLine("Do for example *info pistol* for more information about pistol.");
-        foreach (var item in items)
-        {
-            Console.WriteLine($"- {item.Name} (Range: {item.Range}m) ");
-        }
+        Console.WriteLine("A new day has begun!");
     }
 }
 
 class Player
 {
-    private Inventory inventory;
-
-    public Player()
-    {
-        inventory = new Inventory();
-        inventory.AddItem(new Weapon("Pistol", 100));
-    }
+    public Inventory inventory = new Inventory();
 
     public void ShowInventory()
     {
-        Console.WriteLine("\nYour Inventory:");
-        Inventory.DrawRectangles();
+        inventory.DrawRectangles();
+    }
+
+    public void EquipItem(int index)
+    {
+        Weapon item = inventory.GetItem(index);
+        if (item != null)
+        {
+            Console.WriteLine($"You equipped {item.Name}.");
+        }
+        else
+        {
+            Console.WriteLine("No item in this slot.");
+        }
+    }
+
+    public Weapon GetInventoryItemByName(string name)
+    {
+        return inventory.GetItemByName(name);
+    }
+
+    public void SwapInventoryItems(int index1, int index2)
+    {
+        inventory.SwapItems(index1, index2);
     }
 }
 
 class Inventory
 {
-    
-    private List<Weapon> items = new List<Weapon>();
-    
-
-    public static void DrawRectangles()
+    private List<Weapon> items = new List<Weapon> //det här är hur jag tänker vapen systemet ska se ut, vad man får varje dag
     {
+        new Weapon("Pistol", 50), //DAY 1 shoot 12 shots
+        new Weapon("Knife", 5), // DAY 2 insta kill from 5 meters away
+        new Weapon("Shotgun", 20), //DAY 3 yeah it is a shotgun... 20 meters do the least amount of damage etc...
+        new Weapon("Rifle", 100), //DAY 4 shoot 30 shots
+        new Weapon("Sniper", 200), //DAY 5 can only shoot one shot but insta kill
+        new Weapon("Grenade", 15), //DAY 6 explode everything that is 10 meters away
+        new Weapon("Flashbang", 10), //DAY 7 makes it so you will stop moving for one round
+        new Weapon("Smoke", 0) //DAY 8 makes zombies move 2x slower
+    };
+
+    public void DrawRectangles()
+    {
+        Console.Clear();
+        Console.WriteLine("Inventory:");
+
         string[] rectangle =
         {
             "+-----------+  +-----------+  +-----------+  +-----------+  +-----------+",
             "|           |  |           |  |           |  |           |  |           |",
             "|           |  |           |  |           |  |           |  |           |",
-            "|    GUN    |  |           |  |           |  |           |  |           |",
+            "|  {0,-9}|  |  {1,-9}|  |  {2,-9}|  |  {3,-9}|  |  {4,-9}|",
             "|           |  |           |  |           |  |           |  |           |",
             "|           |  |           |  |           |  |           |  |           |",
             "|__________1|  |__________2|  |__________3|  |__________4|  |__________5|",
@@ -112,10 +154,10 @@ class Inventory
             "+-----------+  +-----------+  +-----------+  +-----------+  +-----------+",
             "|           |  |           |  |           |  |           |  |           |",
             "|           |  |           |  |           |  |           |  |           |",
+            "|  {5,-9}|  |  {6,-9}|  |  {7,-9}|  |           |  |           |",
             "|           |  |           |  |           |  |           |  |           |",
             "|           |  |           |  |           |  |           |  |           |",
-            "|           |  |           |  |           |  |           |  |           |",
-            "|___________|  |___________|  |___________|  |___________|  |___________|",
+            "|__________6|  |__________7|  |__________8|  |___________|  |___________|",
 
             "+-----------+  +-----------+  +-----------+  +-----------+  +-----------+",
             "|           |  |           |  |           |  |           |  |           |",
@@ -125,33 +167,53 @@ class Inventory
             "|           |  |           |  |           |  |           |  |           |",
             "|___________|  |___________|  |___________|  |___________|  |___________|"
         };
-        
+
+        // Fyll inventory med föremål
+        string[] itemNames = new string[8];
+        for (int i = 0; i < 8; i++)
+        {
+            itemNames[i] = i < items.Count ? items[i].Name : "";
+        }
+
+        // Skriv ut inventory med föremålen på rätt plats
         foreach (string line in rectangle)
         {
-            Console.WriteLine(line);
+            Console.WriteLine(string.Format(line, itemNames));
         }
+
+        Console.WriteLine("Press TAB to close inventory.");
     }
 
-    public void AddItem(Weapon item)
+    public Weapon GetItem(int index)
     {
-        items.Add(item);
+        return (index >= 0 && index < items.Count) ? items[index] : null;
     }
-}
 
-class Zombie
-{
-    public int Distance { get; private set; }
-
-    public Zombie(int distance)
+    public Weapon GetItemByName(string name)
     {
-        Distance = distance;
+        return items.Find(item => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void SwapItems(int index1, int index2)
+    {
+        if (index1 >= 0 && index1 < items.Count && index2 >= 0 && index2 < items.Count)
+        {
+            Weapon temp = items[index1];
+            items[index1] = items[index2];
+            items[index2] = temp;
+            Console.WriteLine($"Swapped {items[index1].Name} with {items[index2].Name}.");
+        }
+        else
+        {
+            Console.WriteLine("Invalid item positions!");
+        }
     }
 }
 
 class Weapon
 {
-    public string Name { get; private set; }
-    public int Range { get; private set; }
+    public string Name { get; }
+    public int Range { get; }
 
     public Weapon(string name, int range)
     {
