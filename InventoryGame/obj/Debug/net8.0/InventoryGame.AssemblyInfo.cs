@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("InventoryGame")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+020a9b6afec2bb8eb52d4f4d72cc77ceb0b410d7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7c026dec3f4f3e89ec1d42e1029b95cb94c699e4")]
 [assembly: System.Reflection.AssemblyProductAttribute("InventoryGame")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InventoryGame")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
